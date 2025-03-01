@@ -3,6 +3,12 @@ require("dotenv").config();
 var indexRouter = require("./routes/index.js");
 var authRouter = require("./routes/auth.js");
 
+var logger = require("morgan");
+var passport = require("passport");
+var session = require("express-session");
+
+var SQLiteStore = require("connect-sqlite3")(session);
+
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
@@ -24,6 +30,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
+app.use(
+  session({
+    secret: "keyboard cat",
+    resave: false,
+    saveUninitialized: false,
+    store: new SQLiteStore({ db: "sessions.db", dir: "./var/db" }),
+  })
+);
+app.use(passport.authenticate("session"));
 
 app.use("/", indexRouter);
 app.use("/", authRouter);
